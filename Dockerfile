@@ -1,5 +1,4 @@
-# 1. 사용할 베이스 이미지 (Python 3.9 버전)
-FROM python:3.9
+FROM python:3.10.1
 
 # 2. 컨테이너 안에서 작업할 디렉터리를 /app으로 설정
 WORKDIR /app

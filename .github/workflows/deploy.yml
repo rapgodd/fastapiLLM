@@ -1,0 +1,62 @@
+name: Deploy To EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10.1'
+
+      - name: requirements.txt 파일 만들기
+        run: echo "${{ secrets.REQUIREMENTS }}" > ./requirements.txt
+
+      - name: .env 파일 만들기
+        run: echo "${{ secrets.ENV }}" > ./.env
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR에 로그인하기
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 생성
+        run: docker build -t fastapi-server .
+
+      - name: Docker 이미지에 Tag 붙이기
+        run: docker tag fastapi-server ${{ steps.login-ecr.outputs.registry }}/fastapi-server:latest
+
+      - name: ECR에 Docker 이미지 Push하기
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/fastapi-server:latest
+
+      - name: SSH로 EC2에 접속하기
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            docker stop fastapi-server || true
+            docker rm fastapi-server || true
+            docker pull ${{ steps.login-ecr.outputs.registry }}/fastapi-server:latest
+            docker run -d --name fastapi-server -p 8000:8000 ${{ steps.login-ecr.outputs.registry }}/fastapi-server:latest
