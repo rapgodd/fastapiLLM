@@ -15,7 +15,7 @@ jobs:
       - name: 파이썬 설치
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10.1'
+          python-version: '3.10'
 
       - name: requirements.txt 파일 만들기
         run: echo "${{ secrets.REQUIREMENTS }}" > ./requirements.txt
