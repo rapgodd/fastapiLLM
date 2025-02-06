@@ -1,35 +1,52 @@
+import os
+
 from fastapi import FastAPI
 from dotenv import load_dotenv
-from langchain_community.document_loaders import Docx2txtLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-import os
+from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
+from langchain import hub
+from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
+
+from fillVector import fill
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-loader = Docx2txtLoader('./spring-framework123.docx')
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1500,
-    chunk_overlap=200,
-)
-document = loader.load_and_split(text_splitter=text_splitter)
-embedding = OpenAIEmbeddings(model='text-embedding-3-large')
-Chroma.from_documents(documents=document, embedding=embedding)
-
+pinecone_api_key = os.environ.get("PINECONE_API_KEY")
+pc = Pinecone(api_key=pinecone_api_key)
+DATABASE = None
+retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
 app = FastAPI()
+prompt = hub.pull("rlm/rag-prompt")
+requiredOrNot = os.environ.get("IF_NEED_TO_BE_FILLED")
+
+if "need_to_be_filled" == requiredOrNot:
+    DATABASE = fill()
+else:
+    embedding = OpenAIEmbeddings(model='text-embedding-3-large')
+    DATABASE = PineconeVectorStore(embedding=embedding, index_name='spring-framework')
+
+
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World!"}
+    return {"Hello": "World"}
+
 
 @app.get("/llm")
-def get_llm_response(prompt: str = "안녕하세용!"):
+def get_llm_response(query: str = "nothing"):
+    llm = ChatOpenAI(model='gpt-4o-mini')
+    retriever = DATABASE.as_retriever(search_kwargs={'k': 2})
 
+    print("\n retrieve start \n")
+    print(retriever.invoke(query))
+    print("\n end \n")
 
-    llm = ChatOpenAI(openai_api_key=OPENAI_API_KEY)
+    qa_chain = RetrievalQA.from_chain_type(
+        llm,
+        retriever=retriever,
+        chain_type_kwargs={"prompt": prompt}
+    )
+    ai_message = qa_chain.invoke({"query": query})
 
-
-
-    response = llm.invoke(prompt)
-    return {"prompt": prompt, "response": response}
+    return ai_message
