@@ -21,7 +21,8 @@ jobs:
         run: echo "${{ secrets.REQUIREMENTS }}" > ./requirements.txt
 
       - name: .env 파일 만들기
-        run: echo "${{ secrets.ENV }}" > ./.env
+        run: |
+          printf '%s' "${{ secrets.ENV }}" > .env
 
       - name: Install dependencies
         run: |
