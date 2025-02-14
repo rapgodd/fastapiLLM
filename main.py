@@ -10,8 +10,7 @@ from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate
-
-
+from pydantic import BaseModel
 from fillVector import fill
 
 load_dotenv()
@@ -33,18 +32,30 @@ else:
 dic = os.environ.get("DICTIONARY")
 
 
+class MessageDto(BaseModel):
+    message: str
+    sender: int
+    topic: str
+    chatRoomId: int
+
+
+class ResponseMessageDto(BaseModel):
+    message: str
+
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 
 @app.get("/llm")
-def get_llm_response(query: str = "nothing"):
+def get_llm_response(message: MessageDto):
     llm = ChatOpenAI(model='gpt-4o-mini')
     retriever = DATABASE.as_retriever(search_kwargs={'k': 3})
 
     print("\n retrieve start \n")
-    print(retriever.invoke(query))
+    user_question = message.message
+    print(retriever.invoke(user_question))
     print("\n end \n")
     prompt_obj = ChatPromptTemplate.from_template(system_text)
 
@@ -66,6 +77,7 @@ def get_llm_response(query: str = "nothing"):
     """)
     dictionary_chain = word_return_prompt | llm | StrOutputParser()
     final_chain = {"query": dictionary_chain} | qa_chain
-    llm_response = final_chain.invoke({"question": query})
+    llm_response = final_chain.invoke({"question": user_question})
 
-    return llm_response
+    response = ResponseMessageDto(message=llm_response["result"])
+    return response
