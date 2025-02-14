@@ -48,7 +48,7 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/llm")
+@app.post("/llm")
 def get_llm_response(message: MessageDto):
     llm = ChatOpenAI(model='gpt-4o-mini')
     retriever = DATABASE.as_retriever(search_kwargs={'k': 3})
