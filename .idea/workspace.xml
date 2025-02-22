@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="59832d38-b1e8-4937-aa50-2d59ed3c1dec" name="Changes" comment="" />
+    <list default="true" id="59832d38-b1e8-4937-aa50-2d59ed3c1dec" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fillVector.py" beforeDir="false" afterPath="$PROJECT_DIR$/fillVector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -79,7 +83,11 @@
       <workItem from="1738729356368" duration="8886000" />
       <workItem from="1738757201094" duration="31875000" />
       <workItem from="1738829590398" duration="16637000" />
-      <workItem from="1739436567283" duration="4365000" />
+      <workItem from="1739436567283" duration="6253000" />
+      <workItem from="1739602108262" duration="1333000" />
+      <workItem from="1739960799277" duration="1511000" />
+      <workItem from="1740141533424" duration="4432000" />
+      <workItem from="1740199403442" duration="2966000" />
     </task>
     <servers />
   </component>

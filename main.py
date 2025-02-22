@@ -27,9 +27,10 @@ if "need_to_be_filled" == requiredOrNot:
     DATABASE = fill()
 else:
     embedding = OpenAIEmbeddings(model='text-embedding-3-large')
-    DATABASE = PineconeVectorStore(embedding=embedding, index_name='spring-framework')
+    DATABASE = PineconeVectorStore(embedding=embedding, index_name='vector-store')
 
 dic = os.environ.get("DICTIONARY")
+llm = ChatOpenAI(model='gpt-4o-mini')
 
 
 class MessageDto(BaseModel):
@@ -50,8 +51,10 @@ def read_root():
 
 @app.post("/llm")
 def get_llm_response(message: MessageDto):
-    llm = ChatOpenAI(model='gpt-4o-mini')
-    retriever = DATABASE.as_retriever(search_kwargs={'k': 3})
+    retriever = DATABASE.as_retriever(search_kwargs={
+        'k': 4,
+        'filter': {"tag": message.topic}
+    })
 
     print("\n retrieve start \n")
     user_question = message.message
@@ -81,5 +84,3 @@ def get_llm_response(message: MessageDto):
 
     response = ResponseMessageDto(message=llm_response["result"])
     return response
-
-
